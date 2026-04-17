@@ -56,6 +56,10 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long>,
     @Query("UPDATE Transaction t SET t.ledger = :ledger WHERE t.ledger IS NULL")
     void assignDefaultLedger(@Param("ledger") Ledger ledger);
 
+    // 按日期查询
+    List<Transaction> findByLedgerIdAndTransactionDateOrderByCreatedAtDesc(
+            Long ledgerId, LocalDate transactionDate);
+
     // 删除校验
     boolean existsByCategoryId(Long categoryId);
 

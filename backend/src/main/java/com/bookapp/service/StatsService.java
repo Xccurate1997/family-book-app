@@ -91,10 +91,71 @@ public class StatsService {
         return result;
     }
 
+    // ── 年度统计 ──────────────────────────────────────────
+
+    public YearlySummaryItem yearlySummary(Long ledgerId, int year) {
+        LocalDate start = LocalDate.of(year, 1, 1);
+        LocalDate end = LocalDate.of(year, 12, 31);
+        BigDecimal income = Optional.ofNullable(
+                transactionRepo.sumByLedgerAndTypeAndDateBetween(
+                        ledgerId, TransactionType.INCOME, start, end))
+                .orElse(BigDecimal.ZERO);
+        BigDecimal expense = Optional.ofNullable(
+                transactionRepo.sumByLedgerAndTypeAndDateBetween(
+                        ledgerId, TransactionType.EXPENSE, start, end))
+                .orElse(BigDecimal.ZERO);
+        return new YearlySummaryItem(income, expense, income.subtract(expense));
+    }
+
+    public List<MonthlyTrendItem> yearlyMonthlyTrend(Long ledgerId, int year) {
+        List<MonthlyTrendItem> result = new ArrayList<>();
+        for (int m = 1; m <= 12; m++) {
+            YearMonth ym = YearMonth.of(year, m);
+            LocalDate start = ym.atDay(1);
+            LocalDate end = ym.atEndOfMonth();
+            BigDecimal income = Optional.ofNullable(
+                    transactionRepo.sumByLedgerAndTypeAndDateBetween(
+                            ledgerId, TransactionType.INCOME, start, end))
+                    .orElse(BigDecimal.ZERO);
+            BigDecimal expense = Optional.ofNullable(
+                    transactionRepo.sumByLedgerAndTypeAndDateBetween(
+                            ledgerId, TransactionType.EXPENSE, start, end))
+                    .orElse(BigDecimal.ZERO);
+            result.add(new MonthlyTrendItem(ym.format(DateTimeFormatter.ofPattern("yyyy-MM")),
+                    income, expense));
+        }
+        return result;
+    }
+
+    public List<CategoryBreakdownItem> yearlyCategoryRanking(Long ledgerId, int year, int limit) {
+        LocalDate start = LocalDate.of(year, 1, 1);
+        LocalDate end = LocalDate.of(year, 12, 31);
+        List<Object[]> rows = transactionRepo.sumExpenseByCategoryAndDateBetween(
+                ledgerId, start, end);
+
+        List<CategoryBreakdownItem> result = new ArrayList<>();
+        for (Object[] row : rows) {
+            Category cat = (Category) row[0];
+            BigDecimal amount = (BigDecimal) row[1];
+            result.add(new CategoryBreakdownItem(cat.getId(), cat.getName(), cat.getIcon(), amount));
+        }
+        // 按金额降序排列，取 top N
+        result.sort((a, b) -> b.amount().compareTo(a.amount()));
+        if (result.size() > limit) {
+            result = result.subList(0, limit);
+        }
+        return result;
+    }
+
+    // ── Records ─────────────────────────────────────────
+
     public record MonthlyTrendItem(String month, BigDecimal income, BigDecimal expense) {}
 
     public record CategoryBreakdownItem(Long categoryId, String categoryName,
                                         String icon, BigDecimal amount) {}
 
     public record DailyStatItem(int day, BigDecimal income, BigDecimal expense) {}
+
+    public record YearlySummaryItem(BigDecimal totalIncome, BigDecimal totalExpense,
+                                    BigDecimal balance) {}
 }

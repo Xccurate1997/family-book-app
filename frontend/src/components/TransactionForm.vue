@@ -74,7 +74,8 @@ const props = defineProps({
   modelValue: Boolean,
   transaction: Object,
   categories: Array,
-  ledgerId: Number
+  ledgerId: Number,
+  defaultDate: String
 })
 const emit = defineEmits(['update:modelValue', 'saved'])
 
@@ -93,7 +94,7 @@ const defaultForm = () => ({
   amount: null,
   categoryId: null,
   description: '',
-  transactionDate: dayjs().format('YYYY-MM-DD')
+  transactionDate: props.defaultDate || dayjs().format('YYYY-MM-DD')
 })
 
 const form = ref(defaultForm())

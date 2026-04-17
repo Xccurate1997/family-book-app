@@ -7,7 +7,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.bookapp.repository.TransactionRepository;
+import com.bookapp.service.EmoticonService;
+
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -16,9 +20,15 @@ import java.util.Map;
 public class TransactionController {
 
     private final TransactionService transactionService;
+    private final TransactionRepository transactionRepository;
+    private final EmoticonService emoticonService;
 
-    public TransactionController(TransactionService transactionService) {
+    public TransactionController(TransactionService transactionService,
+                                  TransactionRepository transactionRepository,
+                                  EmoticonService emoticonService) {
         this.transactionService = transactionService;
+        this.transactionRepository = transactionRepository;
+        this.emoticonService = emoticonService;
     }
 
     @GetMapping
@@ -60,6 +70,17 @@ public class TransactionController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
                 .contentType(MediaType.parseMediaType("text/csv; charset=UTF-8"))
                 .body(csv);
+    }
+
+    @GetMapping("/by-date")
+    public List<Transaction> getByDate(
+            @RequestParam Long ledgerId,
+            @RequestParam String date) {
+        LocalDate localDate = LocalDate.parse(date);
+        List<Transaction> list = transactionRepository.findByLedgerIdAndTransactionDateOrderByCreatedAtDesc(
+                ledgerId, localDate);
+        emoticonService.fillMoodEmoji(list);
+        return list;
     }
 
     @PostMapping

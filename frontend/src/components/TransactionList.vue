@@ -25,6 +25,10 @@
         <span class="tx-amount" :class="tx.type === 'INCOME' ? 'income' : 'expense'">
           {{ tx.type === 'INCOME' ? '+' : '-' }}¥{{ fmt(tx.amount) }}
         </span>
+        <span v-if="tx.moodEmoji" class="tx-mood" :style="{ fontSize: emojiStyle.text }">
+          <span v-if="tx.moodEmoji.type === 'TEXT'">{{ tx.moodEmoji.content }}</span>
+          <img v-else :src="`/api/emoticon-images/${tx.moodEmoji.content}`" class="mood-img" :style="{ width: emojiStyle.img + 'px', height: emojiStyle.img + 'px' }" />
+        </span>
         <div class="tx-actions">
           <el-button text size="small" :icon="Edit" @click="$emit('edit', tx)" />
           <el-button text size="small" :icon="Delete" type="danger" @click="$emit('delete', tx)" />
@@ -38,6 +42,10 @@
 import { computed } from 'vue'
 import { Edit, Delete } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
+import { useEmojiSize } from '../composables/useEmojiSize.js'
+
+const { sizeStyle } = useEmojiSize()
+const emojiStyle = computed(() => sizeStyle())
 
 const props = defineProps({ transactions: Array })
 defineEmits(['edit', 'delete'])
@@ -143,6 +151,17 @@ const dailyNetClass = (txs) => (dailyNet(txs) >= 0 ? 'net-positive' : 'net-negat
 
 .income { color: #43a047; }
 .expense { color: #e53935; }
+
+.tx-mood {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.mood-img {
+  object-fit: contain;
+}
 
 .tx-actions {
   display: flex;

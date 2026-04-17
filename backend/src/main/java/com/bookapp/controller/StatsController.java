@@ -37,4 +37,26 @@ public class StatsController {
             @RequestParam int month) {
         return statsService.dailyStats(ledgerId, year, month);
     }
+
+    @GetMapping("/yearly-summary")
+    public StatsService.YearlySummaryItem yearlySummary(
+            @RequestParam Long ledgerId,
+            @RequestParam int year) {
+        return statsService.yearlySummary(ledgerId, year);
+    }
+
+    @GetMapping("/yearly-monthly-trend")
+    public List<StatsService.MonthlyTrendItem> yearlyMonthlyTrend(
+            @RequestParam Long ledgerId,
+            @RequestParam int year) {
+        return statsService.yearlyMonthlyTrend(ledgerId, year);
+    }
+
+    @GetMapping("/yearly-category-ranking")
+    public List<StatsService.CategoryBreakdownItem> yearlyCategoryRanking(
+            @RequestParam Long ledgerId,
+            @RequestParam int year,
+            @RequestParam(defaultValue = "10") int limit) {
+        return statsService.yearlyCategoryRanking(ledgerId, year, limit);
+    }
 }

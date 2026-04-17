@@ -27,19 +27,24 @@ public class TransactionService {
     private final TransactionRepository transactionRepo;
     private final CategoryRepository categoryRepo;
     private final LedgerRepository ledgerRepo;
+    private final EmoticonService emoticonService;
 
     public TransactionService(TransactionRepository transactionRepo,
                                CategoryRepository categoryRepo,
-                               LedgerRepository ledgerRepo) {
+                               LedgerRepository ledgerRepo,
+                               EmoticonService emoticonService) {
         this.transactionRepo = transactionRepo;
         this.categoryRepo = categoryRepo;
         this.ledgerRepo = ledgerRepo;
+        this.emoticonService = emoticonService;
     }
 
     public List<Transaction> findByMonth(Long ledgerId, int year, int month) {
         YearMonth ym = YearMonth.of(year, month);
-        return transactionRepo.findByLedgerIdAndTransactionDateBetweenOrderByTransactionDateDescCreatedAtDesc(
+        List<Transaction> list = transactionRepo.findByLedgerIdAndTransactionDateBetweenOrderByTransactionDateDescCreatedAtDesc(
                 ledgerId, ym.atDay(1), ym.atEndOfMonth());
+        emoticonService.fillMoodEmoji(list);
+        return list;
     }
 
     public List<Transaction> findFiltered(Long ledgerId, int year, int month,
@@ -69,8 +74,10 @@ public class TransactionService {
             return cb.and(predicates.toArray(new Predicate[0]));
         };
 
-        return transactionRepo.findAll(spec,
+        List<Transaction> list = transactionRepo.findAll(spec,
                 Sort.by(Sort.Direction.DESC, "transactionDate", "createdAt"));
+        emoticonService.fillMoodEmoji(list);
+        return list;
     }
 
     public Map<String, BigDecimal> getSummary(Long ledgerId, int year, int month) {
@@ -102,7 +109,9 @@ public class TransactionService {
         tx.setLedger(ledger);
         tx.setDescription(req.description());
         tx.setTransactionDate(req.transactionDate());
-        return transactionRepo.save(tx);
+        Transaction saved = transactionRepo.save(tx);
+        saved.setMoodEmoji(emoticonService.evaluate(saved));
+        return saved;
     }
 
     public Transaction update(Long id, TransactionRequest req) {
@@ -115,7 +124,9 @@ public class TransactionService {
         tx.setCategory(category);
         tx.setDescription(req.description());
         tx.setTransactionDate(req.transactionDate());
-        return transactionRepo.save(tx);
+        Transaction saved = transactionRepo.save(tx);
+        saved.setMoodEmoji(emoticonService.evaluate(saved));
+        return saved;
     }
 
     public void delete(Long id) {

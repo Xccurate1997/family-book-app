@@ -1,5 +1,8 @@
 <template>
   <div class="app-root">
+    <!-- 背景遮罩层 -->
+    <div class="bg-overlay"></div>
+
     <!-- Header -->
     <div class="app-header">
       <h1 class="app-title">家庭记账本</h1>
@@ -20,6 +23,7 @@
           />
         </el-select>
         <el-button text size="small" :icon="Setting" @click="showLedgerManager = true" />
+        <el-button text size="small" :icon="Brush" @click="showThemeSettings = true" title="主题设置" />
       </div>
 
       <!-- Tab 导航 -->
@@ -42,6 +46,19 @@
 
       <!-- 操作按钮 -->
       <div class="header-actions">
+        <!-- 表情大小切换 -->
+        <el-button-group size="small" class="emoji-size-group">
+          <el-tooltip content="小表情" placement="bottom">
+            <el-button :type="emojiSize === 'small' ? 'primary' : ''" @click="setEmojiSize('small')">S</el-button>
+          </el-tooltip>
+          <el-tooltip content="中表情" placement="bottom">
+            <el-button :type="emojiSize === 'medium' ? 'primary' : ''" @click="setEmojiSize('medium')">M</el-button>
+          </el-tooltip>
+          <el-tooltip content="大表情" placement="bottom">
+            <el-button :type="emojiSize === 'large' ? 'primary' : ''" @click="setEmojiSize('large')">L</el-button>
+          </el-tooltip>
+        </el-button-group>
+
         <template v-if="activeView === 'transactions'">
           <el-button size="small" :icon="Download" @click="handleExport">导出</el-button>
           <el-button type="primary" size="small" :icon="Plus" @click="openForm(null)">记一笔</el-button>
@@ -127,6 +144,20 @@
         :month="month"
       />
 
+      <!-- 年报 Tab -->
+      <YearlyReport
+        v-if="activeView === 'yearly'"
+        :ledger-id="currentLedgerId"
+      />
+
+      <!-- 日历 Tab -->
+      <CalendarView
+        v-if="activeView === 'calendar'"
+        :ledger-id="currentLedgerId"
+        :categories="categories"
+        @add-transaction="openFormWithDate"
+      />
+
       <!-- 分类 Tab -->
       <CategoryManager
         v-if="activeView === 'categories'"
@@ -141,6 +172,7 @@
       :transaction="editingTx"
       :categories="categories"
       :ledger-id="currentLedgerId"
+      :default-date="formDefaultDate"
       @saved="loadData"
     />
 
@@ -150,30 +182,42 @@
       :ledgers="ledgers"
       @changed="reloadLedgers"
     />
+
+    <!-- 主题设置弹窗 -->
+    <ThemeSettings v-model="showThemeSettings" />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { ArrowLeft, ArrowRight, Plus, Download, Setting, Filter, ArrowUp } from '@element-plus/icons-vue'
+import { ArrowLeft, ArrowRight, Plus, Download, Setting, Filter, ArrowUp, Brush } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import dayjs from 'dayjs'
 import { useLedger } from './composables/useLedger.js'
+import { useTheme } from './composables/useTheme.js'
+import { useEmojiSize } from './composables/useEmojiSize.js'
 import SummaryCards from './components/SummaryCards.vue'
 import TransactionList from './components/TransactionList.vue'
 import TransactionForm from './components/TransactionForm.vue'
 import ChartsView from './components/ChartsView.vue'
 import LedgerManager from './components/LedgerManager.vue'
 import CategoryManager from './components/CategoryManager.vue'
+import ThemeSettings from './components/ThemeSettings.vue'
+import YearlyReport from './components/YearlyReport.vue'
+import CalendarView from './components/CalendarView.vue'
 import { getCategories, getTransactions, getSummary, deleteTransaction, exportTransactions } from './api/index.js'
 
 const TABS = [
   { key: 'transactions', label: '账单' },
   { key: 'charts', label: '图表' },
+  { key: 'yearly', label: '年报' },
+  { key: 'calendar', label: '日历' },
   { key: 'categories', label: '分类' }
 ]
 
 const { ledgers, currentLedgerId, load: loadLedgers, select: selectLedger } = useLedger()
+const { loadTheme } = useTheme()
+const { currentSize: emojiSize, setSize: setEmojiSize } = useEmojiSize()
 
 const currentDate = ref(dayjs())
 const transactions = ref([])
@@ -183,6 +227,7 @@ const activeView = ref('transactions')
 const showForm = ref(false)
 const editingTx = ref(null)
 const showLedgerManager = ref(false)
+const showThemeSettings = ref(false)
 const showFilters = ref(false)
 const filters = ref({ keyword: '', categoryId: null, minAmount: null, maxAmount: null })
 
@@ -224,7 +269,9 @@ const onLedgerChange = (id) => {
 const prevMonth = () => { currentDate.value = currentDate.value.subtract(1, 'month'); loadData() }
 const nextMonth = () => { currentDate.value = currentDate.value.add(1, 'month'); loadData() }
 
-const openForm = (tx) => { editingTx.value = tx; showForm.value = true }
+const formDefaultDate = ref(null)
+const openForm = (tx) => { editingTx.value = tx; formDefaultDate.value = null; showForm.value = true }
+const openFormWithDate = (date) => { editingTx.value = null; formDefaultDate.value = date; showForm.value = true }
 
 const handleDelete = async (tx) => {
   try {
@@ -257,6 +304,7 @@ const resetFilters = () => {
 }
 
 onMounted(async () => {
+  loadTheme()
   await loadLedgers()
   await loadCategories()
   await loadData()
@@ -266,14 +314,24 @@ onMounted(async () => {
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  background: #f0f2f5;
+  background: var(--app-bg, #f0f2f5);
+  min-height: 100vh;
   font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
   color: #333;
 }
 </style>
 
 <style scoped>
-.app-root { min-height: 100vh; }
+.app-root { min-height: 100vh; position: relative; }
+
+.bg-overlay {
+  position: fixed;
+  inset: 0;
+  background: #fff;
+  opacity: var(--app-overlay-opacity, 0);
+  pointer-events: none;
+  z-index: 0;
+}
 
 .app-header {
   position: sticky;
@@ -345,6 +403,8 @@ body {
   max-width: 860px;
   margin: 0 auto;
   padding: 20px 16px;
+  position: relative;
+  z-index: 1;
 }
 
 .filter-bar {

@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Entity
 @Table(name = "transactions")
@@ -39,6 +40,9 @@ public class Transaction {
     private LocalDate transactionDate;
 
     private LocalDateTime createdAt;
+
+    @Transient
+    private Map<String, String> moodEmoji;
 
     @PrePersist
     protected void onCreate() {

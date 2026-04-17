@@ -40,3 +40,17 @@ export const getCategoryBreakdown = (ledgerId, year, month) =>
 
 export const getDailyStats = (ledgerId, year, month) =>
   api.get('/stats/daily', { params: { ledgerId, year, month } })
+
+// ── 年度统计 ─────────────────────────────────────────
+export const getYearlySummary = (ledgerId, year) =>
+  api.get('/stats/yearly-summary', { params: { ledgerId, year } })
+
+export const getYearlyMonthlyTrend = (ledgerId, year) =>
+  api.get('/stats/yearly-monthly-trend', { params: { ledgerId, year } })
+
+export const getYearlyCategoryRanking = (ledgerId, year, limit = 10) =>
+  api.get('/stats/yearly-category-ranking', { params: { ledgerId, year, limit } })
+
+// ── 按日期查询交易 ───────────────────────────────────
+export const getTransactionsByDate = (ledgerId, date) =>
+  api.get('/transactions/by-date', { params: { ledgerId, date } })
