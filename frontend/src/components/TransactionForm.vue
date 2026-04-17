@@ -73,7 +73,8 @@ import { createTransaction, updateTransaction } from '../api/index.js'
 const props = defineProps({
   modelValue: Boolean,
   transaction: Object,
-  categories: Array
+  categories: Array,
+  ledgerId: Number
 })
 const emit = defineEmits(['update:modelValue', 'saved'])
 
@@ -134,6 +135,7 @@ const handleSubmit = async () => {
   saving.value = true
   try {
     const data = {
+      ledgerId: props.ledgerId,
       amount: form.value.amount,
       type: form.value.type,
       categoryId: form.value.categoryId,

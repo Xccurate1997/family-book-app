@@ -29,6 +29,10 @@ public class Transaction {
     @JoinColumn(name = "category_id")
     private Category category;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "ledger_id", nullable = true)
+    private Ledger ledger;
+
     private String description;
 
     @Column(nullable = false)
