@@ -3,6 +3,7 @@ package com.bookapp.controller;
 import com.bookapp.entity.Category;
 import com.bookapp.service.CategoryService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,25 +20,29 @@ public class CategoryController {
     }
 
     @GetMapping
-    public List<Category> getAll() {
-        return categoryService.findAll();
+    public List<Category> getAll(Authentication auth) {
+        Long userId = (Long) auth.getPrincipal();
+        return categoryService.findByUser(userId);
     }
 
     @PostMapping
-    public Category create(@RequestBody CategoryService.CategoryRequest req) {
-        return categoryService.create(req);
+    public Category create(Authentication auth, @RequestBody CategoryService.CategoryRequest req) {
+        Long userId = (Long) auth.getPrincipal();
+        return categoryService.create(userId, req);
     }
 
     @PutMapping("/{id}")
-    public Category update(@PathVariable Long id,
+    public Category update(Authentication auth, @PathVariable Long id,
                             @RequestBody CategoryService.CategoryRequest req) {
-        return categoryService.update(id, req);
+        Long userId = (Long) auth.getPrincipal();
+        return categoryService.update(userId, id, req);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable Long id) {
+    public ResponseEntity<?> delete(Authentication auth, @PathVariable Long id) {
+        Long userId = (Long) auth.getPrincipal();
         try {
-            categoryService.delete(id);
+            categoryService.delete(userId, id);
             return ResponseEntity.noContent().build();
         } catch (IllegalStateException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));

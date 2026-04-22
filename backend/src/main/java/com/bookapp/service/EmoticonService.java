@@ -1,12 +1,5 @@
 package com.bookapp.service;
 
-import com.bookapp.entity.EmoticonRule;
-import com.bookapp.entity.Transaction;
-import com.bookapp.repository.EmoticonRuleRepository;
-import jakarta.annotation.PostConstruct;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
@@ -15,6 +8,13 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import com.bookapp.entity.EmoticonRule;
+import com.bookapp.entity.Transaction;
+import com.bookapp.repository.EmoticonRuleRepository;
+import jakarta.annotation.PostConstruct;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class EmoticonService {
@@ -79,6 +79,18 @@ public class EmoticonService {
     }
 
     // ── CRUD ──────────────────────────────────────────
+
+    public int disableAllRule() {
+        int count = ruleRepo.disableAllRule();
+        refreshCache();
+        return count;
+    }
+
+    public int enableAllRule() {
+        int count = ruleRepo.enableAllRule();
+        refreshCache();
+        return count;
+    }
 
     public List<EmoticonRule> getAllRules() {
         return ruleRepo.findAll();

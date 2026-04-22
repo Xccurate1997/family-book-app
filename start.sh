@@ -45,14 +45,14 @@ elif is_port_in_use 8080; then
     echo -e "${YELLOW}  端口 8080 已被占用，跳过启动${NC}"
 else
     cd "$SCRIPT_DIR/backend"
-    JAVA_HOME="$JAVA_HOME_17" mvn -s mvn-settings.xml spring-boot:run \
+    nohup env JAVA_HOME="$JAVA_HOME_17" mvn -s mvn-settings.xml spring-boot:run \
         > "$BACKEND_LOG" 2>&1 &
     echo $! > "$BACKEND_PID_FILE"
     cd "$SCRIPT_DIR"
 
     echo -n "  等待后端就绪 "
     for i in $(seq 1 60); do
-        if curl -s http://localhost:8080/api/categories > /dev/null 2>&1; then
+        if curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/auth/login 2>/dev/null | grep -qE "[2-5][0-9][0-9]"; then
             echo -e "${GREEN}✓${NC}"
             break
         fi

@@ -1,7 +1,11 @@
 <template>
   <div class="transaction-list">
     <div v-if="!transactions.length" class="empty-state">
-      <el-empty description="本月暂无记录，点击「记一笔」开始记账" />
+      <div v-if="emptyStateImage" class="custom-empty">
+        <img :src="emptyStateImage" class="custom-empty-img" />
+        <p class="custom-empty-text">本月暂无记录，点击「记一笔」开始记账</p>
+      </div>
+      <el-empty v-else description="本月暂无记录，点击「记一笔」开始记账" />
     </div>
 
     <template v-for="[date, txs] in grouped" :key="date">
@@ -16,7 +20,11 @@
         v-for="tx in txs"
         :key="tx.id"
         class="tx-item"
+        :class="{ 'has-bg': getTxBgImage(tx) }"
+        :style="getTxBgStyle(tx)"
       >
+        <!-- 背景图叠加层，保证文字可读性 -->
+        <div v-if="getTxBgImage(tx)" class="tx-bg-overlay"></div>
         <span class="tx-icon">{{ tx.category?.icon }}</span>
         <div class="tx-info">
           <span class="tx-category">{{ tx.category?.name }}</span>
@@ -47,7 +55,27 @@ import { useEmojiSize } from '../composables/useEmojiSize.js'
 const { sizeStyle } = useEmojiSize()
 const emojiStyle = computed(() => sizeStyle())
 
-const props = defineProps({ transactions: Array })
+const props = defineProps({
+  transactions: Array,
+  emptyStateImage: { type: String, default: null },
+  incomeBgImage: { type: String, default: null },
+  expenseBgImage: { type: String, default: null }
+})
+
+const getTxBgImage = (tx) => {
+  return tx.type === 'INCOME' ? props.incomeBgImage : props.expenseBgImage
+}
+
+const getTxBgStyle = (tx) => {
+  const bgImage = getTxBgImage(tx)
+  if (!bgImage) return {}
+  return {
+    backgroundImage: `url(${bgImage})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat'
+  }
+}
 defineEmits(['edit', 'delete'])
 
 const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六']
@@ -108,10 +136,27 @@ const dailyNetClass = (txs) => (dailyNet(txs) >= 0 ? 'net-positive' : 'net-negat
   margin-bottom: 8px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
   transition: box-shadow 0.2s;
+  position: relative;
+  overflow: hidden;
 }
 
 .tx-item:hover {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* 有背景图时的叠加层 */
+.tx-bg-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.75);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* 有背景图时，内容元素需要在叠加层之上 */
+.tx-item.has-bg > *:not(.tx-bg-overlay) {
+  position: relative;
+  z-index: 1;
 }
 
 .tx-icon {
@@ -178,5 +223,22 @@ const dailyNetClass = (txs) => (dailyNet(txs) >= 0 ? 'net-positive' : 'net-negat
 .empty-state {
   padding: 60px 0;
   text-align: center;
+}
+.custom-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.custom-empty-img {
+  width: 180px;
+  height: 180px;
+  object-fit: contain;
+  opacity: 0.85;
+}
+.custom-empty-text {
+  font-size: 13px;
+  color: #999;
+  margin: 0;
 }
 </style>

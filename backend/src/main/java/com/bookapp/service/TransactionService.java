@@ -1,17 +1,5 @@
 package com.bookapp.service;
 
-import com.bookapp.entity.Category;
-import com.bookapp.entity.Ledger;
-import com.bookapp.entity.Transaction;
-import com.bookapp.entity.TransactionType;
-import com.bookapp.repository.CategoryRepository;
-import com.bookapp.repository.LedgerRepository;
-import com.bookapp.repository.TransactionRepository;
-import jakarta.persistence.criteria.Predicate;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.stereotype.Service;
-
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
@@ -21,8 +9,29 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.bookapp.entity.Category;
+import com.bookapp.entity.EffectEvent;
+import com.bookapp.entity.EffectRule;
+import com.bookapp.entity.Ledger;
+import com.bookapp.entity.Transaction;
+import com.bookapp.entity.TransactionType;
+import com.bookapp.repository.CategoryRepository;
+import com.bookapp.repository.LedgerRepository;
+import com.bookapp.repository.TransactionRepository;
+import jakarta.persistence.criteria.Predicate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+
 @Service
 public class TransactionService {
+
+    @Autowired
+    private EffectService effectService;
+
+    @Autowired
+    private EffectRuleService effectRuleService;
 
     private final TransactionRepository transactionRepo;
     private final CategoryRepository categoryRepo;
@@ -97,11 +106,14 @@ public class TransactionService {
                 "balance", income.subtract(expense));
     }
 
-    public Transaction create(TransactionRequest req) {
+    public Transaction create(Long userId, TransactionRequest req) {
         Category category = categoryRepo.findById(req.categoryId())
                 .orElseThrow(() -> new IllegalArgumentException("分类不存在: " + req.categoryId()));
         Ledger ledger = ledgerRepo.findById(req.ledgerId())
                 .orElseThrow(() -> new IllegalArgumentException("账本不存在: " + req.ledgerId()));
+        if (!ledger.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("无权操作此账本");
+        }
         Transaction tx = new Transaction();
         tx.setAmount(req.amount());
         tx.setType(TransactionType.valueOf(req.type()));
@@ -111,12 +123,24 @@ public class TransactionService {
         tx.setTransactionDate(req.transactionDate());
         Transaction saved = transactionRepo.save(tx);
         saved.setMoodEmoji(emoticonService.evaluate(saved));
+        EffectRule matchedRule = effectRuleService.evaluate(saved);
+        if (matchedRule != null) {
+            EffectEvent effect = new EffectEvent();
+            effect.setType(matchedRule.getEffectType().name());
+            if (matchedRule.getVideoFilename() != null) {
+                effect.setVideoUrl("/api/effect-videos/" + matchedRule.getVideoFilename());
+            }
+            effectService.pushEffect(effect);
+        }
         return saved;
     }
 
-    public Transaction update(Long id, TransactionRequest req) {
+    public Transaction update(Long userId, Long id, TransactionRequest req) {
         Transaction tx = transactionRepo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("交易不存在: " + id));
+        if (!tx.getLedger().getUserId().equals(userId)) {
+            throw new IllegalArgumentException("无权操作此交易");
+        }
         Category category = categoryRepo.findById(req.categoryId())
                 .orElseThrow(() -> new IllegalArgumentException("分类不存在: " + req.categoryId()));
         tx.setAmount(req.amount());
@@ -129,7 +153,12 @@ public class TransactionService {
         return saved;
     }
 
-    public void delete(Long id) {
+    public void delete(Long userId, Long id) {
+        Transaction tx = transactionRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("交易不存在: " + id));
+        if (!tx.getLedger().getUserId().equals(userId)) {
+            throw new IllegalArgumentException("无权操作此交易");
+        }
         transactionRepo.deleteById(id);
     }
 

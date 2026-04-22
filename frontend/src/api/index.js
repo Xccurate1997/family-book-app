@@ -1,6 +1,38 @@
 import axios from 'axios'
+import { useAuth } from '../composables/useAuth.js'
 
 const api = axios.create({ baseURL: '/api' })
+
+// 请求拦截器：自动携带 JWT Token
+api.interceptors.request.use((config) => {
+  const { getToken } = useAuth()
+  const token = getToken()
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
+// 响应拦截器：401 时清除认证并跳转登录
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      const { clearAuth } = useAuth()
+      clearAuth()
+      window.location.href = '/login'
+    }
+    return Promise.reject(error)
+  }
+)
+
+// ── 认证 ──────────────────────────────────────────────
+export const login = (username, password) =>
+  api.post('/auth/login', { username, password })
+
+export const register = (data) => api.post('/auth/register', data)
+
+export const getCurrentUser = () => api.get('/auth/me')
 
 // ── 账本 ──────────────────────────────────────────────
 export const getLedgers = () => api.get('/ledgers')
@@ -54,3 +86,61 @@ export const getYearlyCategoryRanking = (ledgerId, year, limit = 10) =>
 // ── 按日期查询交易 ───────────────────────────────────
 export const getTransactionsByDate = (ledgerId, date) =>
   api.get('/transactions/by-date', { params: { ledgerId, date } })
+
+// ── 特效 ──────────────────────────────────────────────
+export const markEffectPlayed = (id) => api.post(`/effects/${id}/played`)
+
+// ── 主题（用户） ─────────────────────────────────────
+export const getAvailableThemes = () => api.get('/themes/available')
+export const getThemeDetail = (id) => api.get(`/themes/${id}`)
+
+// ── 管理：主题 ────────────────────────────────────────
+export const getAllThemes = () => api.get('/themes')
+export const createTheme = (data) => api.post('/themes', data)
+export const updateTheme = (id, data) => api.put(`/themes/${id}`, data)
+export const deleteTheme = (id) => api.delete(`/themes/${id}`)
+export const getThemeAssignments = (id) => api.get(`/themes/${id}/assignments`)
+export const assignThemeToUser = (id, username) => api.post(`/themes/${id}/assignments`, { username })
+export const removeThemeAssignment = (themeId, username) => api.delete(`/themes/${themeId}/assignments/${username}`)
+export const uploadThemeImage = (file) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  return api.post('/themes/upload-image', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+}
+export const uploadThemeSound = (file) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  return api.post('/themes/upload-sound', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+}
+
+// ── 管理：表情规则 ────────────────────────────────────
+export const getEmoticonRules = () => api.get('/emoticon-rules')
+export const createEmoticonRule = (data) => api.post('/emoticon-rules', data)
+export const updateEmoticonRule = (id, data) => api.put(`/emoticon-rules/${id}`, data)
+export const deleteEmoticonRule = (id) => api.delete(`/emoticon-rules/${id}`)
+export const enableAllEmoticonRules = () => api.post('/emoticon-rules/enable-all')
+export const disableAllEmoticonRules = () => api.post('/emoticon-rules/disable-all')
+export const uploadEmoticonImage = (file) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  return api.post('/emoticon-images/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+}
+
+// ── 管理：彩蛋规则 ────────────────────────────────────
+export const getEffectRules = () => api.get('/effect-rules')
+export const createEffectRule = (data) => api.post('/effect-rules', data)
+export const updateEffectRule = (id, data) => api.put(`/effect-rules/${id}`, data)
+export const deleteEffectRule = (id) => api.delete(`/effect-rules/${id}`)
+export const uploadEffectVideo = (file) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  return api.post('/effect-videos/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+}

@@ -3,6 +3,7 @@ package com.bookapp.controller;
 import com.bookapp.entity.Ledger;
 import com.bookapp.service.LedgerService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,24 +20,29 @@ public class LedgerController {
     }
 
     @GetMapping
-    public List<Ledger> getAll() {
-        return ledgerService.findAll();
+    public List<Ledger> getAll(Authentication auth) {
+        Long userId = (Long) auth.getPrincipal();
+        return ledgerService.findByUser(userId);
     }
 
     @PostMapping
-    public Ledger create(@RequestBody LedgerService.LedgerRequest req) {
-        return ledgerService.create(req);
+    public Ledger create(Authentication auth, @RequestBody LedgerService.LedgerRequest req) {
+        Long userId = (Long) auth.getPrincipal();
+        return ledgerService.create(userId, req);
     }
 
     @PutMapping("/{id}")
-    public Ledger update(@PathVariable Long id, @RequestBody LedgerService.LedgerRequest req) {
-        return ledgerService.update(id, req);
+    public Ledger update(Authentication auth, @PathVariable Long id,
+                         @RequestBody LedgerService.LedgerRequest req) {
+        Long userId = (Long) auth.getPrincipal();
+        return ledgerService.update(userId, id, req);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable Long id) {
+    public ResponseEntity<?> delete(Authentication auth, @PathVariable Long id) {
+        Long userId = (Long) auth.getPrincipal();
         try {
-            ledgerService.delete(id);
+            ledgerService.delete(userId, id);
             return ResponseEntity.noContent().build();
         } catch (IllegalStateException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));

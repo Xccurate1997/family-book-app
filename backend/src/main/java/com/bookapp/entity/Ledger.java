@@ -25,6 +25,8 @@ public class Ledger {
 
     private String color;
 
+    private Long userId;
+
     private LocalDateTime createdAt;
 
     @PrePersist

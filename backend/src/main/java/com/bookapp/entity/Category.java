@@ -24,4 +24,6 @@ public class Category {
     private TransactionType type;
 
     private String icon;
+
+    private Long userId;
 }

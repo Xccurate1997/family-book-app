@@ -20,27 +20,36 @@ public class CategoryService {
         this.transactionRepository = transactionRepository;
     }
 
-    public List<Category> findAll() {
-        return categoryRepository.findAll();
+    public List<Category> findByUser(Long userId) {
+        return categoryRepository.findByUserId(userId);
     }
 
-    public Category create(CategoryRequest req) {
+    public Category create(Long userId, CategoryRequest req) {
         Category category = new Category();
         category.setName(req.name());
         category.setType(TransactionType.valueOf(req.type()));
         category.setIcon(req.icon());
+        category.setUserId(userId);
         return categoryRepository.save(category);
     }
 
-    public Category update(Long id, CategoryRequest req) {
+    public Category update(Long userId, Long id, CategoryRequest req) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("分类不存在: " + id));
+        if (!category.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("无权操作此分类");
+        }
         category.setName(req.name());
         category.setIcon(req.icon());
         return categoryRepository.save(category);
     }
 
-    public void delete(Long id) {
+    public void delete(Long userId, Long id) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("分类不存在: " + id));
+        if (!category.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("无权操作此分类");
+        }
         if (transactionRepository.existsByCategoryId(id)) {
             throw new IllegalStateException("该分类下存在交易记录，无法删除");
         }

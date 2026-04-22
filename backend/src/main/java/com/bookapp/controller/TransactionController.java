@@ -5,6 +5,7 @@ import com.bookapp.service.TransactionService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import com.bookapp.repository.TransactionRepository;
@@ -84,19 +85,23 @@ public class TransactionController {
     }
 
     @PostMapping
-    public Transaction create(@RequestBody TransactionService.TransactionRequest request) {
-        return transactionService.create(request);
+    public Transaction create(Authentication auth,
+                               @RequestBody TransactionService.TransactionRequest request) {
+        Long userId = (Long) auth.getPrincipal();
+        return transactionService.create(userId, request);
     }
 
     @PutMapping("/{id}")
-    public Transaction update(@PathVariable Long id,
+    public Transaction update(Authentication auth, @PathVariable Long id,
                                @RequestBody TransactionService.TransactionRequest request) {
-        return transactionService.update(id, request);
+        Long userId = (Long) auth.getPrincipal();
+        return transactionService.update(userId, id, request);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        transactionService.delete(id);
+    public ResponseEntity<Void> delete(Authentication auth, @PathVariable Long id) {
+        Long userId = (Long) auth.getPrincipal();
+        transactionService.delete(userId, id);
         return ResponseEntity.noContent().build();
     }
 }
