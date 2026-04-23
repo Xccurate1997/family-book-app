@@ -26,4 +26,13 @@ Thumbs.db
 # H2 database (stored in ~/.bookapp/, not in project)
 *.mv.db
 *.trace.db
+
+# Claude
 .claude/
+
+# 构建产物（build.sh 生成的打包目录）
+dist/
+
+# 环境配置
+.env
+.env.local

@@ -188,7 +188,7 @@ do_restart() {
     echo ""
 
     do_stop
-    sleep 2
+    sleep 5
     do_start
 }
 
