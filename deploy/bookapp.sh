@@ -6,7 +6,7 @@
 #============================================================
 
 APP_NAME="book-app"
-APP_HOME="/opt/book-app"
+APP_HOME="/opt/family-book-app"
 JAR_FILE="$APP_HOME/backend/book-app-backend.jar"
 CONFIG_FILE="$APP_HOME/conf/application.properties"
 PID_FILE="$APP_HOME/backend/app.pid"
@@ -188,7 +188,7 @@ do_restart() {
     echo ""
 
     do_stop
-    sleep 2
+    sleep 5
     do_start
 }
 
