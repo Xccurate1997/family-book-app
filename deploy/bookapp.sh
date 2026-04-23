@@ -96,7 +96,7 @@ do_start() {
             echo -e " ${GREEN}✓${NC}"
             break
         fi
-        if [ "$i" -eq 60 ]; then
+        if [ "$i" -eq 360 ]; then
             echo -e " ${RED}✗ 启动超时${NC}"
             echo "  请查看日志: $LOG_FILE"
             exit 1
