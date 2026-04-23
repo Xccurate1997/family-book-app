@@ -118,6 +118,11 @@ const handleDelete = async (c) => {
 .cat-actions { display: flex; gap: 0; opacity: 0; transition: opacity .2s; }
 .cat-item:hover .cat-actions { opacity: 1; }
 
+/* 触摸设备始终显示操作按钮 */
+@media (hover: none) {
+  .cat-actions { opacity: 1; }
+}
+
 .cat-add {
   display: flex;
   gap: 8px;

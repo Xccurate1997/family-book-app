@@ -119,4 +119,38 @@ function handleLogout() {
   overflow-y: auto;
   height: calc(100vh - 56px);
 }
+
+@media (max-width: 640px) {
+  .admin-header {
+    padding: 0 12px;
+  }
+  .admin-header h1 {
+    font-size: 14px;
+  }
+  .admin-body {
+    flex-direction: column;
+  }
+  .admin-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e6e6e6;
+  }
+  .sidebar-menu {
+    display: flex;
+    padding-top: 0;
+  }
+  .sidebar-menu .el-menu-item {
+    flex: 1;
+    text-align: center;
+    padding: 0 8px !important;
+    font-size: 13px;
+  }
+  .admin-main {
+    padding: 12px;
+    height: auto;
+    min-height: 0;
+    flex: 1;
+    overflow-y: auto;
+  }
+}
 </style>

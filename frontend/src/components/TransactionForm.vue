@@ -2,7 +2,7 @@
   <el-dialog
     v-model="visible"
     :title="isEdit ? '编辑记录' : '新增记录'"
-    width="460px"
+    :width="windowWidth < 640 ? '92%' : '460px'"
     :close-on-click-modal="false"
     @closed="resetForm"
   >
@@ -65,7 +65,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import dayjs from 'dayjs'
 import { createTransaction, updateTransaction } from '../api/index.js'
@@ -78,6 +78,11 @@ const props = defineProps({
   defaultDate: String
 })
 const emit = defineEmits(['update:modelValue', 'saved'])
+
+const windowWidth = ref(window.innerWidth)
+const onResize = () => { windowWidth.value = window.innerWidth }
+onMounted(() => window.addEventListener('resize', onResize))
+onUnmounted(() => window.removeEventListener('resize', onResize))
 
 const visible = computed({
   get: () => props.modelValue,

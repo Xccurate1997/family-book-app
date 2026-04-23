@@ -481,6 +481,59 @@ onMounted(async () => {
   flex-wrap: nowrap;
 }
 
+/* ── 移动端响应式 ── */
+@media (max-width: 640px) {
+  .app-header {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 8px 12px;
+    gap: 6px;
+  }
+  .app-title {
+    font-size: 15px;
+  }
+  .ledger-area {
+    flex-shrink: 1;
+  }
+  .ledger-area .el-select {
+    width: 100px !important;
+  }
+  .nav-tabs {
+    order: 10;
+    width: 100%;
+    justify-content: center;
+    flex-shrink: 1;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 2px 0;
+  }
+  .nav-tab {
+    padding: 4px 10px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .month-nav {
+    order: 11;
+    width: 100%;
+    justify-content: center;
+    padding: 2px 0;
+  }
+  .month-label {
+    min-width: 80px;
+    font-size: 13px;
+  }
+  .header-actions {
+    gap: 4px;
+  }
+  .emoji-size-group {
+    display: none;
+  }
+  .header-logo {
+    width: 28px;
+    height: 28px;
+  }
+}
+
 .app-title {
   font-size: 16px;
   font-weight: 600;
@@ -546,6 +599,11 @@ onMounted(async () => {
   position: relative;
   z-index: 1;
 }
+@media (max-width: 640px) {
+  .app-content {
+    padding: 12px 8px;
+  }
+}
 
 .filter-bar {
   margin-bottom: 4px;
@@ -561,6 +619,17 @@ onMounted(async () => {
   padding: 12px 16px;
   margin-bottom: 12px;
   box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+@media (max-width: 640px) {
+  .filter-panel {
+    padding: 8px 12px;
+    gap: 6px;
+  }
+  .filter-panel .el-input,
+  .filter-panel .el-select,
+  .filter-panel .el-input-number {
+    width: 100% !important;
+  }
 }
 
 /* ── 开屏动画 ── */

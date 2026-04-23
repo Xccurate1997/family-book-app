@@ -56,7 +56,7 @@
     <el-dialog
       v-model="dialogVisible"
       :title="isEdit ? '编辑主题' : '新增主题'"
-      width="700px"
+      :width="windowWidth < 640 ? '95%' : '700px'"
       @close="resetForm"
     >
       <el-form :model="formData" label-width="120px">
@@ -333,7 +333,7 @@
     <el-dialog
       v-model="assignDialogVisible"
       title="分配用户"
-      width="500px"
+      :width="windowWidth < 640 ? '92%' : '500px'"
     >
       <div class="assign-content">
         <div class="assigned-users">
@@ -364,7 +364,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import {
@@ -378,6 +378,12 @@ import {
   uploadThemeImage,
   uploadThemeSound
 } from '../../api/index.js'
+
+// 窗口宽度响应式
+const windowWidth = ref(window.innerWidth)
+const onResize = () => { windowWidth.value = window.innerWidth }
+onMounted(() => window.addEventListener('resize', onResize))
+onUnmounted(() => window.removeEventListener('resize', onResize))
 
 // 主题列表
 const themes = ref([])
@@ -799,6 +805,34 @@ onMounted(() => {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
+}
+@media (max-width: 900px) {
+  .theme-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+@media (max-width: 640px) {
+  .theme-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .theme-manager {
+    padding: 12px;
+  }
+  .decoration-images {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .add-user .el-input {
+    width: 100% !important;
+    margin-right: 0 !important;
+    margin-bottom: 8px;
+  }
+  .add-user {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 
 .theme-card {

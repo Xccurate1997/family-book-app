@@ -41,7 +41,7 @@
       v-model="drawerVisible"
       :title="drawerTitle"
       direction="rtl"
-      size="360px"
+      :size="windowWidth < 640 ? '85%' : '360px'"
     >
       <div v-if="drawerLoading" class="drawer-loading">
         <el-icon class="is-loading"><Loading /></el-icon>
@@ -81,7 +81,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { ArrowLeft, ArrowRight, Loading } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
 import { getDailyStats, getTransactionsByDate } from '../api/index.js'
@@ -96,6 +96,11 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['addTransaction'])
+
+const windowWidth = ref(window.innerWidth)
+const onResize = () => { windowWidth.value = window.innerWidth }
+onMounted(() => window.addEventListener('resize', onResize))
+onUnmounted(() => window.removeEventListener('resize', onResize))
 
 const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六']
 
@@ -350,5 +355,26 @@ onMounted(loadData)
 
 .mood-img {
   object-fit: contain;
+}
+
+@media (max-width: 640px) {
+  .calendar-grid {
+    gap: 2px;
+    padding: 8px;
+  }
+  .day-cell {
+    min-height: 56px;
+    padding: 2px 4px;
+  }
+  .day-number {
+    font-size: 12px;
+  }
+  .day-income, .day-expense {
+    font-size: 9px;
+  }
+  .weekday-header {
+    font-size: 11px;
+    padding: 4px 0;
+  }
 }
 </style>

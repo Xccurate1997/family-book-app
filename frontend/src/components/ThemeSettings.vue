@@ -3,7 +3,7 @@
     :model-value="modelValue"
     @update:model-value="$emit('update:modelValue', $event)"
     title="切换主题"
-    width="480px"
+    :width="windowWidth < 640 ? '92%' : '480px'"
   >
     <div v-if="availableThemes.length === 0" class="empty-tip">
       暂无可用主题
@@ -36,13 +36,18 @@
 </template>
 
 <script setup>
-import { watch } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { Check } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useTheme } from '../composables/useTheme.js'
 
 const props = defineProps({ modelValue: Boolean })
 const emit = defineEmits(['update:modelValue'])
+
+const windowWidth = ref(window.innerWidth)
+const onResize = () => { windowWidth.value = window.innerWidth }
+onMounted(() => window.addEventListener('resize', onResize))
+onUnmounted(() => window.removeEventListener('resize', onResize))
 
 const { availableThemes, currentThemeId, loadAvailableThemes, selectTheme } = useTheme()
 

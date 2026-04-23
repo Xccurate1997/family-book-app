@@ -50,6 +50,23 @@ const fmt = (n) =>
   letter-spacing: 0.5px;
 }
 
+@media (max-width: 640px) {
+  .summary-cards {
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .card {
+    padding: 12px 14px;
+  }
+  .card-amount {
+    font-size: 18px;
+  }
+  .card-label {
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+}
+
 .income {
   background: linear-gradient(135deg, #43a047, #66bb6a);
 }

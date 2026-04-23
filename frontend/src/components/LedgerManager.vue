@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="visible" title="账本管理" width="420px" :close-on-click-modal="false">
+  <el-dialog v-model="visible" title="账本管理" :width="windowWidth < 640 ? '92%' : '420px'" :close-on-click-modal="false">
     <div class="ledger-list">
       <div v-for="l in ledgers" :key="l.id" class="ledger-item">
         <template v-if="editingId === l.id">
@@ -37,13 +37,18 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Edit, Delete, Plus } from '@element-plus/icons-vue'
 import { createLedger, updateLedger, deleteLedger } from '../api/index.js'
 
 const props = defineProps({ modelValue: Boolean, ledgers: Array })
 const emit = defineEmits(['update:modelValue', 'changed'])
+
+const windowWidth = ref(window.innerWidth)
+const onResize = () => { windowWidth.value = window.innerWidth }
+onMounted(() => window.addEventListener('resize', onResize))
+onUnmounted(() => window.removeEventListener('resize', onResize))
 
 const visible = computed({
   get: () => props.modelValue,
@@ -112,5 +117,16 @@ const handleDelete = async (l) => {
   display: flex;
   gap: 8px;
   align-items: center;
+}
+
+@media (max-width: 640px) {
+  .ledger-item {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .new-ledger {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
 }
 </style>

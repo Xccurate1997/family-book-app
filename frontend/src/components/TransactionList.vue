@@ -220,6 +220,34 @@ const dailyNetClass = (txs) => (dailyNet(txs) >= 0 ? 'net-positive' : 'net-negat
   opacity: 1;
 }
 
+/* 触摸设备始终显示操作按钮 */
+@media (hover: none) {
+  .tx-actions {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .tx-item {
+    gap: 8px;
+    padding: 10px 12px;
+  }
+  .tx-icon {
+    font-size: 20px;
+    width: 28px;
+  }
+  .tx-category {
+    font-size: 13px;
+  }
+  .tx-amount {
+    font-size: 14px;
+  }
+  .custom-empty-img {
+    width: 120px;
+    height: 120px;
+  }
+}
+
 .empty-state {
   padding: 60px 0;
   text-align: center;
