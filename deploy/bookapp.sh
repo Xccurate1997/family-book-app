@@ -91,7 +91,7 @@ do_start() {
 
     # 等待后端就绪
     echo -n "  等待后端就绪 "
-    for i in $(seq 1 60); do
+    for i in $(seq 1 360); do
         if curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/auth/login 2>/dev/null | grep -qE "[2-5][0-9][0-9]"; then
             echo -e " ${GREEN}✓${NC}"
             break
