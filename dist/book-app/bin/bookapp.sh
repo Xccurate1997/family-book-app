@@ -91,12 +91,12 @@ do_start() {
 
     # 等待后端就绪
     echo -n "  等待后端就绪 "
-    for i in $(seq 1 60); do
+    for i in $(seq 1 360); do
         if curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/auth/login 2>/dev/null | grep -qE "[2-5][0-9][0-9]"; then
             echo -e " ${GREEN}✓${NC}"
             break
         fi
-        if [ "$i" -eq 60 ]; then
+        if [ "$i" -eq 360 ]; then
             echo -e " ${RED}✗ 启动超时${NC}"
             echo "  请查看日志: $LOG_FILE"
             exit 1
@@ -188,7 +188,7 @@ do_restart() {
     echo ""
 
     do_stop
-    sleep 2
+    sleep 5
     do_start
 }
 

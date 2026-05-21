@@ -197,6 +197,31 @@ tar -xzf book-app-1.0.0.tar.gz
 ls -la /opt/book-app/
 ```
 
+### 4.1.1 迁移数据目录（重要！）
+
+应用的业务数据（数据库、主题图片、Emoji 图片、音效等）存储在运行用户的 `~/.bookapp/` 目录下，**不包含在部署包中**。如果你在开发机上已有数据，需要手动迁移：
+
+```bash
+# === 在开发机（Mac）上执行 ===
+# 打包数据目录
+tar -czf bookapp-data.tar.gz -C ~ .bookapp/
+
+# 上传到服务器
+scp bookapp-data.tar.gz root@your-server-ip:/root/
+
+# === 在服务器上执行 ===
+# 解压到运行用户的 home 目录
+cd ~
+tar -xzf bookapp-data.tar.gz
+
+# 验证文件
+ls -la ~/.bookapp/data.*           # H2 数据库文件
+ls -la ~/.bookapp/theme-assets/    # 主题资源（图片、音效）
+ls -la ~/.bookapp/emojis/          # Emoji 表情图片
+```
+
+> **说明**: 如果是全新部署（无历史数据），可跳过此步骤，系统会在首次启动时自动创建目录和初始化数据。但已上传的主题图片、Emoji 图片等资源文件需要重新上传。
+
 **设置脚本执行权限**
 
 ```bash
@@ -224,6 +249,29 @@ nginx -t
 # 启动 Nginx
 systemctl start nginx
 ```
+
+**⚠️ 重要：文件权限和 SELinux 配置**
+
+> CentOS 8 默认开启 SELinux，如果不处理会导致 Nginx 返回 **500 Internal Server Error** 或 **403 Forbidden**。
+
+```bash
+# 1. 确保部署目录权限正确（Nginx 需要读取前端静态文件）
+chmod -R 755 /opt/book-app/frontend/dist/
+
+# 2. 处理 SELinux（CentOS 8 必须执行！）
+# 检查 SELinux 状态
+getenforce
+
+# 如果返回 "Enforcing"，需要执行以下两步:
+
+# 允许 Nginx 读取前端静态文件目录
+chcon -Rt httpd_sys_content_t /opt/book-app/frontend/dist/
+
+# 允许 Nginx 反向代理到后端 8080 端口
+setsebool -P httpd_can_network_connect 1
+```
+
+> **注意**: 应用必须部署在 `/opt/book-app/` 目录下，不要放在 `/root/` 目录下，因为 `/root` 目录权限为 700，Nginx worker 进程（以 nginx 用户运行）无法访问其中的文件。
 
 ### 4.3 配置后端（可选）
 
